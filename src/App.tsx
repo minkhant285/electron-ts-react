@@ -1,24 +1,36 @@
+import { Box, Button } from "@mui/material";
 import React from "react";
-import logo from "./logo.svg";
 import "./App.css";
+import ButtonAppBar from "./AppBar";
+import MiniDrawer from "./Drawer";
 
 function App() {
     return (
-        <div className="App">
-            <header className="App-header">
-                <img src={logo} className="App-logo" alt="logo" />
-                <p>
-                    Edit <code>src/App.tsx</code> and save to reload.
-                </p>
-                <a
-                    className="App-link"
-                    href="https://reactjs.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Learn React
-                </a>
-            </header>
+        <div
+            style={{
+                position: "absolute",
+                bottom: 0,
+                top: 0,
+                left: 0,
+                right: 0,
+            }}
+        >
+            <MiniDrawer />
+            {/* <div style={{ height: "5.5%" }}>
+                <ButtonAppBar />
+            </div>
+            <Box
+                display={"flex"}
+                flexDirection="row"
+                style={{ height: "94.5%" }}
+            >
+                <Box bgcolor={"red"} display="flex" flex={3}>
+                    a
+                </Box>
+                <Box bgcolor={"blue"} display="flex" flex={1}>
+                    b
+                </Box>
+            </Box> */}
         </div>
     );
 }
