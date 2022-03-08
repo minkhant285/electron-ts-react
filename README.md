@@ -1,46 +1,124 @@
-# Getting Started with Create React App
+### electron react typescript boilerplate setup
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+- create-react-app my-app --template typescript
+- cd my-app
+- yarn add @types/electron-devtools-installer electron-devtools-installer electron-is-dev electron-reload
+- yarn add -D concurrently electron electron-builder wait-on cross-env
 
-## Available Scripts
+### Make Electron main process source file
 
-In the project directory, you can run:
+```
+// electron/tsconfig.json
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "../build", // Output transpiled files to build/electron/
+    "rootDir": "../",
+    "noEmitOnError": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ]
+  }
+}
+```
 
-### `yarn start`
+electron/main.ts
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```
+import { app, BrowserWindow } from 'electron';
+import * as path from 'path';
+import * as isDev from 'electron-is-dev';
+import installExtension, { REACT_DEVELOPER_TOOLS } from "electron-devtools-installer";
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+let win: BrowserWindow | null = null;
 
-### `yarn test`
+function createWindow() {
+  win = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+  if (isDev) {
+    win.loadURL('http://localhost:3000/index.html');
+  } else {
+    // 'build/index.html'
+    win.loadURL(`file://${__dirname}/../index.html`);
+  }
 
-### `yarn build`
+  win.on('closed', () => win = null);
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  // Hot Reloading
+  if (isDev) {
+    // 'node_modules/.bin/electronPath'
+    require('electron-reload')(__dirname, {
+      electron: path.join(__dirname, '..', '..', 'node_modules', '.bin', 'electron'),
+      forceHardReset: true,
+      hardResetMethod: 'exit'
+    });
+  }
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+  // DevTools
+  installExtension(REACT_DEVELOPER_TOOLS)
+    .then((name) => console.log(`Added Extension:  ${name}`))
+    .catch((err) => console.log('An error occurred: ', err));
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  if (isDev) {
+    win.webContents.openDevTools();
+  }
+}
 
-### `yarn eject`
+app.on('ready', createWindow);
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+app.on('activate', () => {
+  if (win === null) {
+    createWindow();
+  }
+});
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Adjust package.json
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+#### Add properties for Electron
 
-## Learn More
+```json
+  "homepage": ".", # see https://create-react-app.dev/docs/deployment#serving-the-same-build-from-different-paths
+  "main": "build/electron/main.js",
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+#### Add properties for Electron Builder
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```json
+  "author": "Your Name",
+  "description": "React-TypeScript-Electron sample with Create React App and Electron Builder",
+  ...
+  "build": {
+    "extends": null, # see https://github.com/electron-userland/electron-builder/issues/2030#issuecomment-386720420
+    "files": [
+      "build/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets" # change the resource directory from 'build' to 'assets'
+    }
+  },
+```
+
+#### Add scripts
+
+```json
+  "scripts": {
+    "postinstall": "electron-builder install-app-deps",
+    "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && electron .\"",
+    "electron:build": "yarn build && tsc -p electron && electron-builder",
+```
