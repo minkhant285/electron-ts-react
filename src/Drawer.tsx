@@ -12,6 +12,7 @@ import ListItemText from "@mui/material/ListItemText";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
 import { Card, CardActionArea, CardContent, Grid } from "@mui/material";
+const { ipcRenderer } = window.require("electron");
 
 const drawerWidth = 240;
 
@@ -65,14 +66,24 @@ export default function MiniDrawer() {
     const [open, setOpen] = React.useState(false);
     const [selectedDrawer, setSelectedDrawer] = React.useState(0);
     const numberofTable: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const [result, setResult] = React.useState<any>();
 
     const handleDrawerOpen = () => {
         setOpen(true);
+        ipcRenderer.send("mouse-data", true);
     };
 
     const handleDrawerClose = () => {
         setOpen(false);
+        ipcRenderer.send("mouse-data", false);
     };
+
+    React.useEffect(() => {
+        ipcRenderer.on("return-data", (event: any, arg: any) => {
+            setResult(JSON.stringify(arg));
+            console.log("Hiii", arg); // prints "Hiii pong"
+        });
+    }, [result]);
 
     return (
         <Box sx={{ display: "flex" }} style={{ height: "100%" }} bgcolor="gray">
@@ -160,6 +171,11 @@ export default function MiniDrawer() {
                     <Typography variant="h4" style={{ height: 80 }}>
                         Resturant
                     </Typography>
+                    {result && (
+                        <Typography>
+                            {JSON.stringify(result, null, 2)}
+                        </Typography>
+                    )}
                     <Box>
                         <Grid container spacing={3} columns={12} paddingX={6}>
                             {numberofTable.map((tnum) => (
@@ -177,14 +193,18 @@ export default function MiniDrawer() {
                                             height: 200,
                                             backgroundColor:
                                                 tnum % 2 === 0
-                                                    ? "green"
+                                                    ? "yellow"
                                                     : "white",
                                         }}
                                     >
                                         <CardActionArea
-                                            onClick={() =>
-                                                setSelectedDrawer(tnum)
-                                            }
+                                            onClick={() => {
+                                                // setSelectedDrawer(tnum);
+                                                ipcRenderer.send(
+                                                    "show-data",
+                                                    tnum
+                                                );
+                                            }}
                                             style={{
                                                 height: "100%",
                                                 justifyContent: "center",

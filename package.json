@@ -31,6 +31,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "postinstall": "electron-builder install-app-deps",
+    "electron:backend": "concurrently \"tsc -p electron -w\" \"nodemon --exec electron .\"",
     "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://localhost:3000 && tsc -p electron -w\" \"wait-on http://localhost:3000 && tsc -p electron && electron .\"",
     "electron:build": "yarn build && tsc -p electron && electron-builder",
     "eject": "react-scripts eject"
@@ -64,9 +65,11 @@
   },
   "devDependencies": {
     "concurrently": "^7.0.0",
+    "copyfiles": "^2.4.1",
     "cross-env": "^7.0.3",
     "electron": "^17.1.1",
     "electron-builder": "^22.14.13",
+    "nodemon": "^2.0.15",
     "wait-on": "^6.0.1"
   }
 }

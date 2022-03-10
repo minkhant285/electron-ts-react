@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1 id="demo">Hello World gg</h1>
+    <h1 id="time">time gg</h1>
+    <button onclick="myFunction()">hello</button>
+    <button onclick="getTimeFunc()">getTime</button>
+    <script>
+        function getTimeFunc() {
+            const { ipcRenderer } = require('electron')
+            let result = "";
+            let time = "";
+            // inside a renderer process
+            ipcRenderer.send('get-time', {
+             data: "some data"
+            })
+
+            ipcRenderer.on('time-data',(event,arg)=>{
+                time = arg;
+                console.log(arg)
+            })
+
+            setTimeout(()=>{
+
+                document.getElementById("time").innerHTML = JSON.stringify(time)
+            },2000)
+        }
+        function myFunction() {
+            const { ipcRenderer } = require('electron')
+            let result = "";
+            // inside a renderer process
+            ipcRenderer.send('show-data', {
+             data: "some data"
+            })
+
+            ipcRenderer.on('return-data',(event,arg)=>{
+                result = arg;
+                console.log(arg)
+            })
+
+            setTimeout(()=>{
+
+                document.getElementById("demo").innerHTML = JSON.stringify(result)
+            },2000)
+        }
+        </script>
+</body>
+</html>
