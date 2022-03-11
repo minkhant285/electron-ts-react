@@ -7,28 +7,48 @@
     <title>Document</title>
 </head>
 <body>
-    <h1 id="demo">Hello World gg</h1>
-    <h1 id="time">time gg</h1>
+    <h1 id="demo">Hello World </h1>
+    <h1 id="product">Product</h1>
+    <h1 id="products">Products</h1>
     <button onclick="myFunction()">hello</button>
-    <button onclick="getTimeFunc()">getTime</button>
+    <button onclick="getProduct()">product</button>
+    <button onclick="getProductById()">productbyid</button>
     <script>
-        function getTimeFunc() {
+        function getProductById() {
             const { ipcRenderer } = require('electron')
             let result = "";
-            let time = "";
+            let product = "";
+
             // inside a renderer process
-            ipcRenderer.send('get-time', {
-             data: "some data"
+            ipcRenderer.send('get-product-by-id', {
+             id: "f41a5b3d-ce53-452a-acce-3c72d75e5c08"
             })
 
-            ipcRenderer.on('time-data',(event,arg)=>{
-                time = arg;
+            ipcRenderer.on('product-data-by-id',(event,arg)=>{
+                product = arg;
                 console.log(arg)
             })
 
             setTimeout(()=>{
 
-                document.getElementById("time").innerHTML = JSON.stringify(time)
+                document.getElementById("product").innerHTML = JSON.stringify(product)
+            },2000)
+        }
+        function getProduct() {
+            const { ipcRenderer } = require('electron')
+            let result = "";
+            let products = "";
+            // inside a renderer process
+            ipcRenderer.send('get-product', {})
+
+            ipcRenderer.on('product-data',(event,arg)=>{
+                products = arg;
+                console.log(arg)
+            })
+
+            setTimeout(()=>{
+
+                document.getElementById("products").innerHTML = JSON.stringify(products)
             },2000)
         }
         function myFunction() {

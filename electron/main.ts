@@ -1,14 +1,17 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 // import * as path from "path";
 import * as isDev from "electron-is-dev";
-// import installExtension, {
-//     REACT_DEVELOPER_TOOLS,
-// } from "electron-devtools-installer";
-import { GetData, getTime } from "./data";
+import { Connection } from "typeorm";
+import { GetData } from "./data";
+import { DBService } from "./db/services/product.service";
+import { connection } from "./db/dbinitializer";
 
 let win: BrowserWindow | null = null;
 
-function createWindow() {
+async function createWindow() {
+    let conn: Connection = await connection();
+    let dBService = new DBService(conn);
+
     // let { width, height } = require("electron").screen.getPrimaryDisplay().size;
     win = new BrowserWindow({
         width: 500,
@@ -19,9 +22,12 @@ function createWindow() {
         },
     });
 
-    ipcMain.on("get-time", (event, arg) => {
-        event.reply("time-data", getTime());
-        console.log(getTime());
+    ipcMain.on("get-product", async (event, arg) => {
+        event.reply("product-data", await dBService.getData());
+    });
+
+    ipcMain.on("get-product-by-id", async (event, arg: { id: string }) => {
+        event.reply("product-data-by-id", await dBService.getDataById(arg.id));
     });
 
     ipcMain.on("show-data", (event, title) => {
@@ -33,7 +39,7 @@ function createWindow() {
     });
 
     ipcMain.on("mouse-data", (event, title) => {
-        // console.log(title);
+        console.log(title);
         event.reply("data", console.log(title));
     });
 
